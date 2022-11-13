@@ -36,10 +36,12 @@ class PCADevice:
         return self._last_update
 
     def set_on(self):
-        self._jeelink.send_command(self._id, self._channel, command=5, data=0)
+        self._state = 1
+        self._jeelink.send_command(self._id, self._channel, command=5, data=1)
 
     def set_off(self):
-        self._jeelink.send_command(self._id, self._channel, command=5, data=1)
+        self._state = 0
+        self._jeelink.send_command(self._id, self._channel, command=5, data=0)
 
     def status_request(self):
         self._jeelink.send_command(self._id, self._channel, command=4, data=0)

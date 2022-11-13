@@ -7,7 +7,7 @@ class PCADevice:
     def __init__(self, jeelink, device_id):
         self._jeelink = jeelink
         self._id = device_id
-        self._state = 0
+        self._state = None
         self._power = 0
         self._consumption = 0
         self._channel = 0
@@ -36,11 +36,11 @@ class PCADevice:
         return self._last_update
 
     def set_on(self):
-        self._state = 1
+        self._state = True
         self._jeelink.send_command(self._id, self._channel, command=5, data=1)
 
     def set_off(self):
-        self._state = 0
+        self._state = False
         self._jeelink.send_command(self._id, self._channel, command=5, data=0)
 
     def status_request(self):
@@ -55,7 +55,7 @@ class PCADevice:
     def get_updates(self, data):
         _LOGGER.info(str(data))
         self._channel = data["channel"]
-        self._state = data["state"]
+        self._state = bool(data["state"])
         self._power = data["power"]
         self._consumption = data["consumption"]
         self._available = True

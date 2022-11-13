@@ -6,8 +6,10 @@ from pca import PCA
 async def main():
     pca = PCA()
     await pca.open(pca.available_ports()[0])
-    await asyncio.sleep(100)
-    pca.devices[list(pca.devices)[0]].turn_on()
+    #while not pca.devices:
+    #    await asyncio.sleep(0.1)
+    #device = list(pca.devices)[0]
+    #pca.send_command()
     await asyncio.sleep(10000)
 
 

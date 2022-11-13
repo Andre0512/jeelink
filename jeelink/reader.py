@@ -40,7 +40,7 @@ class PCAJeeLinkReader(JeeLinkReader):
             line = line.replace("\r", "")
             if not line:
                 continue
-            if match := re.findall("OK 24 (\\d+) \\d((?: \\d+){3})((?: \\d+){5})", line):
+            if match := re.findall("OK 24 (\\d+) 4((?: \\d+){3})((?: \\d+){5})", line):
                 channel, address, data = match[0]
                 data = [int(value) for value in data.split(" ") if value]
                 device_id = "".join([f"{chunk:>03}" for chunk in address.split(" ") if chunk])

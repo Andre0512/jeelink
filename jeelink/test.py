@@ -1,10 +1,10 @@
 import asyncio
 
-import pypca
+from pca import PCA
 
 
 async def main():
-    pca = pypca.PCA()
+    pca = PCA()
     await pca.open(pca.available_ports()[0])
     await asyncio.sleep(100)
     pca.devices[list(pca.devices)[0]].turn_on()

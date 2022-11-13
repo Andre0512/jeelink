@@ -12,5 +12,5 @@ setup(
     keywords='smart home automation',
     include_package_data=True,
     python_requires='>=3.8',
-    install_requires=['pyserial-async'],
+    install_requires=['pyserial-asyncio'],
 )

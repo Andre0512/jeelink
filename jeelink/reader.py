@@ -7,6 +7,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
                     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 _LOGGER = logging.getLogger(__name__)
 
+
 class JeeLinkReader(asyncio.Protocol):
     def __init__(self):
         self._data = ""

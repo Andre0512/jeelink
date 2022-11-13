@@ -1,10 +1,15 @@
 import asyncio
+import logging
+import sys
 
 import serial_asyncio
-from .devices import PCADevice
-from pypca.reader import PCAJeeLinkReader
+from jeelink.devices import PCADevice
+from jeelink.reader import PCAJeeLinkReader
 from serial.tools import list_ports
 
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
+                    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+_LOGGER = logging.getLogger(__name__)
 
 class PCA:
     def __init__(self):

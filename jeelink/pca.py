@@ -3,12 +3,17 @@ import logging
 import sys
 
 import serial_asyncio
-from jeelink.reader import PCAJeeLinkReader
 from serial.tools import list_ports
+
+from jeelink.reader import PCAJeeLinkReader
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
                     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 _LOGGER = logging.getLogger(__name__)
+
+
+def available_ports():
+    return [port[0] for port in sorted(list_ports.comports())]
 
 
 class PCA:
@@ -20,10 +25,6 @@ class PCA:
         self._reader = None
         self._writer = None
         self._devices = {}
-
-    @staticmethod
-    def available_ports():
-        return [port[0] for port in sorted(list_ports.comports())]
 
     async def open(self, port):
         self._port = port

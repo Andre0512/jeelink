@@ -1,15 +1,14 @@
 import asyncio
 
-from pca import PCA
+from pca import PCA, available_ports
 
 
 async def main():
     pca = PCA()
-    await pca.open(pca.available_ports()[0])
-    #while not pca.devices:
-    #    await asyncio.sleep(0.1)
-    #device = list(pca.devices)[0]
-    #pca.send_command()
+    await pca.open(available_ports()[0])
+    # while not pca.devices:
+    #     await asyncio.sleep(0.1)
+    # pca.send_command()
     await asyncio.sleep(10000)
 
 

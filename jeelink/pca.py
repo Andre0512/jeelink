@@ -26,13 +26,14 @@ class PCA:
         self._writer = None
         self._devices = {}
 
-    async def open(self, port):
+    async def setup(self, port):
         self._port = port
         self._writer, self._reader = await serial_asyncio.create_serial_connection(asyncio.get_event_loop(),
                                                                                    PCAJeeLinkReader,
                                                                                    self._port, baudrate=self._baud)
         self._reader.register_callback(self._get_updates)
-        await asyncio.sleep(5)
+        while not self._reader.started:
+            await asyncio.sleep(0.01)
         self._write("l")
         self._write("v")
         # Turn off the blue LED

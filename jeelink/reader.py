@@ -34,6 +34,15 @@ class PCAJeeLinkReader(JeeLinkReader):
         super().__init__()
         self._model = ""
         self._callback = None
+        self._started = False
+
+    @property
+    def model(self):
+        return self._model
+
+    @property
+    def started(self):
+        return self._started
 
     def _process_data(self, read_data):
         for line in read_data.split("\n"):
@@ -48,11 +57,14 @@ class PCAJeeLinkReader(JeeLinkReader):
                                "consumption": (int(data[3]) * 256 + int(data[4])) / 100.0, "channel": int(channel)}
                 if self._callback:
                     self._callback(device_id, data=device_data)
+                self._started = True
             elif match := re.findall("L 24 (\\d+) \\d :(?: \\d+){2}((?: \\d+){3})(?: \\d+){5}", line):
                 if self._callback:
                     self._callback("".join([f"{chunk:>03}" for chunk in match[0][1]]), intern_number=match[0][0])
             elif not self._model and (model := re.findall('\\[(.+?)]', line)):
                 self._model = model
+            elif not self._started and "Available commands" in line:
+                self._started = True
             _LOGGER.debug(f"Read  - {line}")
 
     def register_callback(self, method):

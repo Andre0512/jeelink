@@ -25,6 +25,7 @@ class PCA:
         self._reader = None
         self._writer = None
         self._devices = {}
+        self._new_device_callbacks = []
 
     async def setup(self, port):
         self._port = port
@@ -49,6 +50,8 @@ class PCA:
             return
         if device_id not in self._devices:
             self._devices[device_id] = []
+            for callback in self._new_device_callbacks:
+                callback(device_id)
         for callback in self._devices[device_id]:
             callback(data)
 
@@ -60,5 +63,10 @@ class PCA:
         address = f"{int(device_id[:3])},{int(device_id[3:6])},{int(device_id[6:])}"
         self._write(f"{channel_id},{command},{address},{data},255,255,255,255s")
 
-    def register_callback(self, device_id, callback):
+    def register_event_callback(self, device_id, callback):
         self._devices[device_id].append(callback)
+
+    def register_new_device_callback(self, callback):
+        for device_id in self._devices:
+            callback(device_id)
+        self._new_device_callbacks.append(callback)

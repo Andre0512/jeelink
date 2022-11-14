@@ -12,7 +12,7 @@ class PCADevice:
         self._consumption = 0
         self._channel = 0
         self._last_update = None
-        self._jeelink.register_callback(self._id, self.get_updates)
+        self._jeelink.register_event_callback(self._id, self.get_updates)
         self._available = False
 
     @property

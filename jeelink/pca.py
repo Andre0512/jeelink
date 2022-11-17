@@ -3,9 +3,8 @@ import logging
 import sys
 
 import serial_asyncio
-from serial.tools import list_ports
-
 from jeelink.reader import PCAJeeLinkReader
+from serial.tools import list_ports
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
                     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -24,8 +23,9 @@ class PCA:
         self._model = ""
         self._reader = None
         self._writer = None
-        self._devices = {}
-        self._new_device_callbacks = []
+        self._devices = []
+        self._event_callbacks = {}
+        self._discover_callbacks = []
 
     async def setup(self, port):
         self._port = port
@@ -46,14 +46,18 @@ class PCA:
 
     def _get_updates(self, device_id, data=None, intern_number=0):
         if intern_number:
-            self._write(f"{intern_number}p")
+            self.force_polling(intern_number)
             return
         if device_id not in self._devices:
-            self._devices[device_id] = []
-            for callback in self._new_device_callbacks:
-                callback(device_id)
-        for callback in self._devices[device_id]:
-            callback(data)
+            self._devices.append(device_id)
+            for cb in self._discover_callbacks:
+                cb(device_id, data=data)
+        else:
+            for cb in self._event_callbacks.get(device_id, []):
+                cb(data)
+
+    def force_polling(self, number):
+        self._write(f"{number}p")
 
     def _write(self, text):
         _LOGGER.debug(f"Write - {text}")
@@ -64,9 +68,9 @@ class PCA:
         self._write(f"{channel_id},{command},{address},{data},255,255,255,255s")
 
     def register_event_callback(self, device_id, callback):
-        self._devices[device_id].append(callback)
+        self._event_callbacks.setdefault(device_id, []).append(callback)
 
-    def register_new_device_callback(self, callback):
+    def register_discover_callback(self, callback):
+        self._discover_callbacks.append(callback)
         for device_id in self._devices:
             callback(device_id)
-        self._new_device_callbacks.append(callback)

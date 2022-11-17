@@ -4,7 +4,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class PCADevice:
-    def __init__(self, jeelink, device_id):
+    def __init__(self, jeelink, device_id, data=None):
         self._jeelink = jeelink
         self._id = device_id
         self._state = None
@@ -14,6 +14,8 @@ class PCADevice:
         self._last_update = None
         self._jeelink.register_event_callback(self._id, self.get_updates)
         self._available = False
+        if data:
+            self.get_updates(data)
 
     @property
     def available(self):

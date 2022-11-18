@@ -14,8 +14,6 @@ class PCADevice:
         self._last_update = None
         self._jeelink.register_event_callback(self._id, self.get_updates)
         self._available = False
-        if data:
-            self.get_updates(data)
 
     @property
     def available(self):

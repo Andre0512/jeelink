@@ -35,10 +35,20 @@ class PCA:
         self._reader.register_callback(self._get_updates)
         while not self._reader.started:
             await asyncio.sleep(0.01)
+
+        self.request_devices()
+        self.request_devices()
+        self.request_version()
+
+    def request_devices(self):
         self._write("l")
+
+    def request_version(self):
         self._write("v")
-        # Turn off the blue LED
-        self._write("0a")
+
+    def set_led(self, off=True):
+        """ Turn on/off the blue LED """
+        self._write(f"{bool(not off)}a")
 
     @property
     def devices(self):

@@ -1,2 +1,4 @@
-from jeelink.pca import PCA, available_ports
-from jeelink.device import PCADevice
+from jeelink.pca import PCAJeeLink
+from jeelink.jeelink import JeeLink
+from helper import available_ports, setup
+from device import PCADevice

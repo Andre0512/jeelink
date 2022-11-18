@@ -4,7 +4,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class PCADevice:
-    def __init__(self, jeelink, device_id, data=None):
+    def __init__(self, jeelink, device_id):
         self._jeelink = jeelink
         self._id = device_id
         self._state = None
@@ -53,7 +53,7 @@ class PCADevice:
         self._jeelink.send_command(self._id, self._channel, command=6, data=0)
 
     def get_updates(self, data):
-        _LOGGER.info(str(data))
+        _LOGGER.debug(str(data))
         self._channel = data["channel"]
         self._state = bool(data["state"])
         self._power = data["power"]

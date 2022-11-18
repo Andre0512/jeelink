@@ -3,7 +3,7 @@ import logging
 import re
 import sys
 
-from jeelink import JeeLink
+from jeelink.gateway import JeeLink
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
                     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -15,8 +15,6 @@ class PCAJeeLink(JeeLink):
         """Initialize the pca device."""
         super().__init__()
         self._model = ""
-        self._reader = None
-        self._writer = None
         self._devices = []
         self._event_callbacks = {}
         self._discover_callbacks = []
@@ -49,13 +47,16 @@ class PCAJeeLink(JeeLink):
                 device_data = {"power": (int(data[1]) * 256 + int(data[2])) / 10.0, "state": int(data[0]),
                                "consumption": (int(data[3]) * 256 + int(data[4])) / 100.0, "channel": int(channel)}
                 self._get_updates(self._parse_device_id(address), data=device_data)
-                self._started = True
+                if not self._started:
+                    self._started = True
+                    self._init_connection()
             elif match := re.findall("L 24 (\\d+) \\d :(?: \\d+){2}((?: \\d+){3})(?: \\d+){5}", line):
                 self._get_updates(self._parse_device_id(match[0][1]), intern_number=match[0][0])
             elif not self._model and (model := re.findall('\\[(.+?)]', line)):
                 self._model = model
             elif not self._started and "Available commands" in line:
                 self._started = True
+                self._init_connection()
             _LOGGER.debug(f"Read  - {line}")
 
     def request_devices(self):
@@ -99,10 +100,7 @@ class PCAJeeLink(JeeLink):
         for device_id in self._devices:
             callback(device_id)
 
-    def connection_made(self, transport):
-        super(PCAJeeLink, self).connection_made(transport)
-        while not self._reader.started:
-            asyncio.run(asyncio.sleep(0.01))
+    def _init_connection(self):
         self.request_version()
         self.set_led_off()
         self.request_devices()

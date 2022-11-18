@@ -29,7 +29,7 @@ class JeeLink(asyncio.Protocol):
         _LOGGER.error("Removed jeelink")
 
     def connection_made(self, transport):
-        _LOGGER.error("Connected with jeelink")
+        _LOGGER.info("Connected with jeelink")
         self._writer = transport
 
     def _write(self, text):

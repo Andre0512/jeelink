@@ -17,7 +17,7 @@ class PCADevice:
 
     @property
     def available(self):
-        return self._available
+        return self._available and self._jeelink.available
 
     @property
     def power(self):

@@ -4,6 +4,7 @@ import re
 import sys
 
 from jeelink.gateway import JeeLink
+from jeelink import helper
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
                     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -32,32 +33,49 @@ class PCAJeeLink(JeeLink):
     def devices(self):
         return self._devices
 
-    @staticmethod
-    def _parse_device_id(device_id):
-        return "".join([f"{chunk:>03}" for chunk in device_id.split(" ") if chunk])
+    @property
+    def available(self):
+        return self._available
+
+    @available.setter
+    def available(self, available):
+        self._available = available
+        if not available:
+            for device, callbacks in self._event_callbacks.items():
+                for callback in callbacks:
+                    callback({})
+        else:
+            self._init_connection()
 
     def _process_data(self, read_data):
         for line in read_data.split("\n"):
             line = line.replace("\r", "")
             if not line:
                 continue
+            _LOGGER.debug(f"Read  - {line}")
             if match := re.findall("OK 24 (\\d+) 4((?: \\d+){3})((?: \\d+){5})", line):
                 channel, address, data = match[0]
                 data = [int(value) for value in data.split(" ") if value]
                 device_data = {"power": (int(data[1]) * 256 + int(data[2])) / 10.0, "state": int(data[0]),
                                "consumption": (int(data[3]) * 256 + int(data[4])) / 100.0, "channel": int(channel)}
-                self._get_updates(self._parse_device_id(address), data=device_data)
+                for callback in self._event_callbacks.get(helper.deserialize(address), []):
+                    callback(device_data)
+                self._add_device(helper.deserialize(match[0][1]))
                 if not self._started:
-                    self._started = True
-                    self._init_connection()
+                    self._available = True
             elif match := re.findall("L 24 (\\d+) \\d :(?: \\d+){2}((?: \\d+){3})(?: \\d+){5}", line):
-                self._get_updates(self._parse_device_id(match[0][1]), intern_number=match[0][0])
+                self.force_polling(match[0][0])
+                self._add_device(helper.deserialize(match[0][1]))
             elif not self._model and (model := re.findall('\\[(.+?)]', line)):
                 self._model = model
             elif not self._started and "Available commands" in line:
-                self._started = True
-                self._init_connection()
-            _LOGGER.debug(f"Read  - {line}")
+                self._available = True
+
+    def _add_device(self, device_id, data=None):
+        if device_id not in self._devices:
+            self._devices.append(device_id)
+            for callback in self._discover_callbacks:
+                callback(device_id, data=data)
 
     def request_devices(self):
         self._write("l")
@@ -77,20 +95,8 @@ class PCAJeeLink(JeeLink):
         self._write(f"{number}p")
 
     def send_command(self, device_id, channel_id, command, data):
-        address = f"{int(device_id[:3])},{int(device_id[3:6])},{int(device_id[6:])}"
+        address = helper.serialize(device_id).replace(" ", ",")
         self._write(f"{channel_id},{command},{address},{data},255,255,255,255s")
-
-    def _get_updates(self, device_id, data=None, intern_number=0):
-        if intern_number:
-            self.force_polling(intern_number)
-            return
-        if device_id not in self._devices:
-            self._devices.append(device_id)
-            for cb in self._discover_callbacks:
-                cb(device_id, data=data)
-        else:
-            for cb in self._event_callbacks.get(device_id, []):
-                cb(data)
 
     def register_event_callback(self, device_id, callback):
         self._event_callbacks.setdefault(device_id, []).append(callback)
@@ -101,6 +107,7 @@ class PCAJeeLink(JeeLink):
             callback(device_id)
 
     def _init_connection(self):
+        self._started = True
         self.request_version()
         self.set_led_off()
         self.request_devices()

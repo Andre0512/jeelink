@@ -17,7 +17,7 @@ class PCADevice:
 
     @property
     def available(self):
-        return self._available and self._jeelink.available
+        return self._available
 
     @property
     def power(self):
@@ -53,9 +53,10 @@ class PCADevice:
         self._jeelink.send_command(self._id, self._channel, command=6, data=0)
 
     def get_updates(self, data):
-        _LOGGER.debug(str(data))
-        self._channel = data["channel"]
-        self._state = bool(data["state"])
-        self._power = data["power"]
-        self._consumption = data["consumption"]
-        self._available = True
+        _LOGGER.error(str(data))
+        if data:
+            self._channel = data["channel"]
+            self._state = bool(data["state"])
+            self._power = data["power"]
+            self._consumption = data["consumption"]
+        self._available = bool(data)

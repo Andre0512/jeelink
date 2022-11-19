@@ -18,8 +18,7 @@ class JeeLink(asyncio.Protocol):
     def available(self):
         return self._available
 
-    @available.setter
-    def available(self, available):
+    def set_available(self, available):
         self._available = available
 
     def _process_data(self, data):
@@ -36,12 +35,12 @@ class JeeLink(asyncio.Protocol):
 
     def connection_lost(self, exc):
         _LOGGER.error("Removed jeelink")
-        self.available = False
+        self.set_available(False)
 
     def connection_made(self, transport):
         _LOGGER.info("Connected with jeelink")
         self._writer = transport
-        self.available = True
+        self.set_available(True)
 
     def _write(self, text):
         _LOGGER.debug(f"Write - {text}")

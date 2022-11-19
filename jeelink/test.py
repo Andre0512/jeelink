@@ -5,7 +5,7 @@ from jeelink import available_ports, setup, PCAJeeLink
 
 async def main():
     pca = await setup(available_ports()[0])
-    if pca.started:
+    if pca.available:
         pca.request_devices()
     await asyncio.sleep(100)
 

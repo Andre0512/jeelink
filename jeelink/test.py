@@ -1,12 +1,11 @@
 import asyncio
 
-from jeelink import available_ports, setup, PCAJeeLink
+from jeelink import available_ports, setup, PCAJeeLink, is_pca
 
 
 async def main():
-    pca = await setup(available_ports()[0])
-    if pca.available:
-        pca.request_devices()
+    print(await is_pca(available_ports()[0]))
+
     await asyncio.sleep(100)
 
 

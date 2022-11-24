@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import re
 import sys
@@ -5,7 +6,7 @@ import sys
 from jeelink import helper, PCADevice
 from jeelink.gateway import JeeLink
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
+logging.basicConfig(stream=sys.stdout, level=logging.INFO,
                     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,6 +39,14 @@ class PCAJeeLink(JeeLink):
         if not self._devices:
             self._init_connection()
 
+    async def wait_available(self, timeout=10):
+        waited = 0
+        while not self.available and waited <= timeout:
+            await asyncio.sleep(0.1)
+            waited += 0.1
+        if not self.available:
+            raise TimeoutError
+
     @property
     def device_class(self):
         return self._device_class
@@ -58,7 +67,7 @@ class PCAJeeLink(JeeLink):
                     self._add_device(helper.deserialize(address))
                     self._device_data(channel, address, data)
                 elif not self._model and (model := re.findall('\\[(.+?)]', line)):
-                    self._model = model
+                    self._model = model[0]
                 elif not self._available and "Available commands" in line:
                     self.set_available(True)
 

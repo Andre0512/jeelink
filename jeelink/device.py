@@ -99,3 +99,8 @@ class PCADevice:
             await asyncio.sleep(UPDATE_INTERVAL_SECONDS)
         self.set_available(False)
         logging.warning(f"Set {self.name} unavailable")
+
+    def close(self):
+        for task in asyncio.all_tasks(asyncio.get_event_loop()):
+            if task.get_name() == f"{self._name} available check" and not task.cancelled():
+                task.cancel()

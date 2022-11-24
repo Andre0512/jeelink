@@ -1,9 +1,13 @@
 import asyncio
+import logging
 
 import serial_asyncio
+from serial import SerialException
 from serial.tools import list_ports
 
 from jeelink.pca import PCAJeeLink
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def available_ports():
@@ -12,24 +16,29 @@ def available_ports():
 
 async def setup(port, baud=57600, device_class=PCAJeeLink):
     loop = asyncio.get_event_loop()
-    _, jeelink = await serial_asyncio.create_serial_connection(loop, device_class, port, baudrate=baud)
+    try:
+        _, jeelink = await serial_asyncio.create_serial_connection(loop, device_class, port, baudrate=baud)
+    except SerialException as e:
+        _LOGGER.error(e)
+        return None
     return jeelink
 
 
 async def is_pca(port, baud=57600, device_class=PCAJeeLink, timeout=10):
     jeelink = await setup(port, baud, device_class)
-    try:
-        await jeelink.wait_available(timeout=timeout/2)
-    except TimeoutError:
-        return False
-    waited = 0
-    jeelink.request_version()
-    while not jeelink.model and waited <= timeout/2:
-        await asyncio.sleep(0.1)
-        waited += 0.1
-    if not jeelink.model:
-        return False
-    return "pcaSerial" in jeelink.model
+    if jeelink:
+        try:
+            await jeelink.wait_available(timeout=timeout/2)
+        except TimeoutError:
+            return False
+        waited = 0
+        jeelink.request_version()
+        while not jeelink.model and waited <= timeout/2:
+            await asyncio.sleep(0.1)
+            waited += 0.1
+        if jeelink.model:
+            return "pcaSerial" in jeelink.model
+    return False
 
 
 def serialize(device_id):

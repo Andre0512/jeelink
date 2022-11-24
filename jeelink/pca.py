@@ -1,13 +1,10 @@
 import asyncio
 import logging
 import re
-import sys
 
 from jeelink import helper, PCADevice
 from jeelink.gateway import JeeLink
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO,
-                    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 _LOGGER = logging.getLogger(__name__)
 
 

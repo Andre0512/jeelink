@@ -1,7 +1,8 @@
 import logging
-import re
 
 from jeelink import JeeLink
+from jeelink.device.lacrosse import LaCrosseDevice
+from jeelink.gateway import jeelink_pattern, jeelink_register
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,18 +28,18 @@ x        test command
 """
 
 
+@jeelink_register
 class LaCrosseJeeLink(JeeLink):
-    def _process_data(self, read_data):
-        for line in read_data.strip().replace("\r", "").split("\n"):
-            if line:
-                _LOGGER.debug(f"Read  - {line}")
-                if match := re.findall("OK 9 (\\d+) (\\d+) (\\d+) (\\d+) (\\d+)", line):
-                    data = [int(c) for c in match[0]]
-                    sensor_id = data[0]
-                    sensor_type = data[1] & 0x7f
-                    new_battery = True if data[1] & 0x80 else False
-                    temperature = float(data[2] * 256 + data[3] - 1000) / 10
-                    humidity = data[4] & 0x7f
-                    low_battery = True if data[4] & 0x80 else False
-                elif not self._model and (model := re.findall('\\[(.+?)]', line)):
-                    self._model = model[0]
+    def __init__(self, device_class=LaCrosseDevice):
+        super().__init__(device_class)
+
+    @jeelink_pattern("OK 9 (\\d+) (\\d+) (\\d+) (\\d+) (\\d+)")
+    def _temperature(self, data):
+        data = [int(c) for c in data[0]]
+        print(data)
+        sensor_id = data[0]
+        sensor_type = data[1] & 0x7f
+        new_battery = True if data[1] & 0x80 else False
+        temperature = float(data[2] * 256 + data[3] - 1000) / 10
+        humidity = data[4] & 0x7f
+        low_battery = True if data[4] & 0x80 else False

@@ -34,12 +34,25 @@ class LaCrosseJeeLink(JeeLink):
         super().__init__(device_class)
 
     @jeelink_pattern("OK 9 (\\d+) (\\d+) (\\d+) (\\d+) (\\d+)")
-    def _temperature(self, data):
-        data = [int(c) for c in data[0]]
-        print(data)
-        sensor_id = data[0]
-        sensor_type = data[1] & 0x7f
-        new_battery = True if data[1] & 0x80 else False
-        temperature = float(data[2] * 256 + data[3] - 1000) / 10
-        humidity = data[4] & 0x7f
-        low_battery = True if data[4] & 0x80 else False
+    def _temperature(self, raw_data):
+        device_id, *data = [int(c) for c in raw_data[0]]
+        if device := self._devices.get(device_id):
+            device.set_sensor_type(data[0] & 0x7f)
+            device.set_new_battery(True if data[0] & 0x80 else False)
+            device.set_temperature(float(data[1] * 256 + data[2] - 1000) / 10)
+            device.set_humidity(data[3] & 0x7f)
+            device.set_low_battery(True if data[3] & 0x80 else False)
+        else:
+            self._add_device(device_id)
+            self._temperature(raw_data)
+
+    def set_led_off(self):
+        """ Turn on the blue LED """
+        self._write("0a")
+
+    def set_led_on(self):
+        """ Turn off the blue LED """
+        self._write("1a")
+
+    def request_version(self):
+        self._write("v")

@@ -29,15 +29,16 @@ class PCAJeeLink(JeeLink):
         self._add_device(helper.deserialize(address))
         self._device_data(channel, address, data)
 
-    def _device_data(self, channel, address, data):
+    def _device_data(self, channel, address, raw_data):
         if device := self._devices.get(helper.deserialize(address)):
-            data = [int(value) for value in data.split(" ") if value]
+            data = [int(value) for value in raw_data.split(" ") if value]
             device.set_state(int(data[0]))
             device.set_power((int(data[1]) * 256 + int(data[2])) / 10.0)
             device.set_consumption((int(data[3]) * 256 + int(data[4])) / 100.0)
             device.set_channel(int(channel))
         else:
             self._add_device(helper.deserialize(address))
+            self._device_data(channel, address, raw_data)
 
     def request_devices(self):
         self._write("l")

@@ -1,6 +1,12 @@
 # Jeelink-Python
 
-Use JeeLink with python
+Async python library for serial connections to jeelink sketches
+
+## Installation
+```commandline
+pip install jeelink
+```
 
 ## Supported sketches
-### PCA
+### PCA 301
+### LaCrosse

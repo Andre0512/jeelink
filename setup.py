@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="jeelink-python",
-    version="0.1",
+    version="0.2",
     author="Andre Basche",
     license="MIT",
     url="https://github.com/Andre0512/jeelink-python",

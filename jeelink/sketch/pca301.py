@@ -1,8 +1,8 @@
-import asyncio
 import logging
 import re
 
-from jeelink import helper, PCADevice
+from jeelink import helper
+from jeelink.device.pca301 import PCADevice
 from jeelink.gateway import JeeLink
 
 _LOGGER = logging.getLogger(__name__)
@@ -12,14 +12,9 @@ class PCAJeeLink(JeeLink):
     def __init__(self, device_class=PCADevice):
         """Initialize the pca device."""
         super().__init__()
-        self._model = ""
         self._devices = {}
         self._device_class = device_class
         self._pattern = "(\\d+) 4((?: \\d+){3})((?: \\d+){5})"
-
-    @property
-    def model(self):
-        return self._model
 
     @property
     def devices(self):
@@ -35,14 +30,6 @@ class PCAJeeLink(JeeLink):
             device.set_available(available)
         if not self._devices:
             self._init_connection()
-
-    async def wait_available(self, timeout=10):
-        waited = 0
-        while not self.available and waited <= timeout:
-            await asyncio.sleep(0.1)
-            waited += 0.1
-        if not self.available:
-            raise TimeoutError
 
     @property
     def device_class(self):

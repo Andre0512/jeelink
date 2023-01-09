@@ -2,7 +2,7 @@ import asyncio
 import logging
 import sys
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO,
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
                     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 _LOGGER = logging.getLogger(__name__)
 
@@ -10,7 +10,7 @@ _LOGGER = logging.getLogger(__name__)
 class JeeLink(asyncio.Protocol):
     def __init__(self):
         self._data = ""
-        self._chunk = ""
+        self._model = ""
         self._available = False
         self._writer = None
 
@@ -21,17 +21,29 @@ class JeeLink(asyncio.Protocol):
     def set_available(self, available):
         self._available = available
 
+    @property
+    def model(self):
+        return self._model
+
+    async def wait_available(self, timeout=10):
+        waited = 0
+        while not self.available and waited <= timeout:
+            await asyncio.sleep(0.1)
+            waited += 0.1
+        if not self.available:
+            raise TimeoutError
+
     def _process_data(self, data):
-        pass
+        raise NotImplemented
 
     def data_received(self, data: bytes) -> None:
-        data = data.decode()
-        if not data[-2:] == "\r\n":
-            self._chunk = data
+        self._data = self._data + data.decode()
+        if not self._data[-2:] == "\r\n":
             return
-        self._data = self._chunk + data
-        self._process_data(self._data)
-        self._chunk = ""
+        try:
+            self._process_data(self._data)
+        finally:
+            self._data = ""
 
     def connection_lost(self, exc):
         _LOGGER.error("Removed jeelink")
@@ -45,3 +57,4 @@ class JeeLink(asyncio.Protocol):
     def _write(self, text):
         _LOGGER.debug(f"Write - {text}")
         self._writer.write(text.encode())
+

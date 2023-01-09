@@ -5,7 +5,7 @@ import serial_asyncio
 from serial import SerialException
 from serial.tools import list_ports
 
-from jeelink.pca import PCAJeeLink
+from jeelink.sketch.pca301 import PCAJeeLink
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ async def setup(port, baud=57600, device_class=PCAJeeLink):
         _, jeelink = await serial_asyncio.create_serial_connection(loop, device_class, port, baudrate=baud)
     except SerialException as e:
         _LOGGER.error(e)
-        return None
+        raise ConnectionError
     return jeelink
 
 

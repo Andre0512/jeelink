@@ -7,14 +7,22 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
                     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 _LOGGER = logging.getLogger(__name__)
 
+JEELINK_DEVICES = [{"vid": "0403", "pid": "6001"}]
 
-def jeelink_register(cls):
-    cls._pattern = {}
-    for method_name in dir(cls):
-        method = getattr(cls, method_name)
-        if hasattr(method, '_prop'):
-            cls._pattern.update({method_name: method._prop})
-    return cls
+jeelink_sketches = {}
+
+
+def jeelink_register(sketch):
+    def decorator(cls):
+        if sketch:
+            jeelink_sketches[sketch] = cls
+        cls._pattern = {}
+        for method_name in dir(cls):
+            method = getattr(cls, method_name)
+            if hasattr(method, '_prop'):
+                cls._pattern.update({method_name: method._prop})
+        return cls
+    return decorator
 
 
 def jeelink_pattern(*args):
@@ -25,7 +33,7 @@ def jeelink_pattern(*args):
     return wrapper
 
 
-@jeelink_register
+@jeelink_register(None)
 class JeeLink(asyncio.Protocol):
     def __init__(self, device_class=None):
         self._data = ""

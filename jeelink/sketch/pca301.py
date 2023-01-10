@@ -14,7 +14,7 @@ def deserialize(device_id):
     return "".join([f"{chunk:>03}" for chunk in device_id.split(" ") if chunk])
 
 
-@jeelink_register
+@jeelink_register("pcaSerial")
 class PCAJeeLink(JeeLink):
     def __init__(self, device_class=PCADevice):
         """Initialize the pca device."""

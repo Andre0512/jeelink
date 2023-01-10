@@ -1,8 +1,7 @@
 import logging
 
-from jeelink.gateway import JeeLink
 from jeelink.device.lacrosse import LaCrosseDevice
-from jeelink.gateway import jeelink_pattern, jeelink_register
+from jeelink.gateway import JeeLink, jeelink_pattern, jeelink_register
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,7 +27,7 @@ x        test command
 """
 
 
-@jeelink_register
+@jeelink_register("lacrosse")
 class LaCrosseJeeLink(JeeLink):
     def __init__(self, device_class=LaCrosseDevice):
         super().__init__(device_class)

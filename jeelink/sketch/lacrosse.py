@@ -1,6 +1,6 @@
 import logging
 
-from jeelink import JeeLink
+from jeelink.gateway import JeeLink
 from jeelink.device.lacrosse import LaCrosseDevice
 from jeelink.gateway import jeelink_pattern, jeelink_register
 

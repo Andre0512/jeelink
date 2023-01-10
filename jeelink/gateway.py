@@ -27,7 +27,7 @@ def jeelink_pattern(*args):
 
 @jeelink_register
 class JeeLink(asyncio.Protocol):
-    def __init__(self, device_class):
+    def __init__(self, device_class=None):
         self._data = ""
         self._model = ""
         self._available = False

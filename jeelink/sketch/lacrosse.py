@@ -27,7 +27,7 @@ x        test command
 """
 
 
-@jeelink_register("lacrosse")
+@jeelink_register("LaCrosseITPlusReader")
 class LaCrosseJeeLink(JeeLink):
     def __init__(self, device_class=LaCrosseDevice):
         super().__init__(device_class)
@@ -36,11 +36,13 @@ class LaCrosseJeeLink(JeeLink):
     def _temperature(self, raw_data):
         device_id, *data = [int(c) for c in raw_data[0]]
         if device := self._devices.get(device_id):
-            device.set_sensor_type(data[0] & 0x7f)
-            device.set_new_battery(True if data[0] & 0x80 else False)
-            device.set_temperature(float(data[1] * 256 + data[2] - 1000) / 10)
-            device.set_humidity(data[3] & 0x7f)
-            device.set_low_battery(True if data[3] & 0x80 else False)
+            device.device_update(**{
+                "sensor_type": data[0] & 0x7f,
+                "new_battery": True if data[0] & 0x80 else False,
+                "temperature": float(data[1] * 256 + data[2] - 1000) / 10,
+                "humidity": data[3] & 0x7f,
+                "low_battery": True if data[3] & 0x80 else False,
+            })
         else:
             self._add_device(device_id)
             self._temperature(raw_data)
